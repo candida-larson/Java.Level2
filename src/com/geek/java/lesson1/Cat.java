@@ -1,6 +1,6 @@
 package com.geek.java.lesson1;
 
-public class Cat implements Runnable, Jumpable {
+public class Cat implements Competitor, Runnable, Jumpable {
     @Override
     public int jump() {
         return 32;

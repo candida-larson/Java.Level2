@@ -1,6 +1,6 @@
 package com.geek.java.lesson1;
 
-public class Human implements Jumpable, Runnable {
+public class Human implements Competitor, Jumpable, Runnable {
     @Override
     public int jump() {
         return 75;

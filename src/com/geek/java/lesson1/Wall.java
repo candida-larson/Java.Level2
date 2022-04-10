@@ -1,6 +1,6 @@
 package com.geek.java.lesson1;
 
-public class Wall {
+public class Wall implements Obstacle {
     private int height;
 
     public int getHeight() {
