@@ -7,7 +7,17 @@ public class Robot implements Competitor, Runnable, Jumpable {
     }
 
     @Override
+    public boolean canJumpWall(Wall wall) {
+        return false;
+    }
+
+    @Override
     public int run() {
         return 84000;
+    }
+
+    @Override
+    public boolean canRunTreadmill(Treadmill treadmill) {
+        return false;
     }
 }

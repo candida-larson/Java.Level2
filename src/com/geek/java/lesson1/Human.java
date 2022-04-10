@@ -7,7 +7,17 @@ public class Human implements Competitor, Jumpable, Runnable {
     }
 
     @Override
+    public boolean canJumpWall(Wall wall) {
+        return false;
+    }
+
+    @Override
     public int run() {
         return 45000;
+    }
+
+    @Override
+    public boolean canRunTreadmill(Treadmill treadmill) {
+        return false;
     }
 }
