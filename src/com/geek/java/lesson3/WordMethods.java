@@ -1,6 +1,5 @@
 package com.geek.java.lesson3;
 
-import java.sql.Array;
 import java.util.*;
 
 public class WordMethods {
@@ -25,5 +24,4 @@ public class WordMethods {
         }
         return wordsWithRepeats;
     }
-
 }
