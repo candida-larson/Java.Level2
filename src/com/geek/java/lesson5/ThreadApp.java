@@ -2,18 +2,15 @@ package com.geek.java.lesson5;
 
 public class ThreadApp {
     static final int SIZE = 10_000_000;
-    static final int HALF_OF_SIZE = SIZE / 2;
     static float[] numbers = new float[SIZE];
 
     public static void main(String[] args) throws InterruptedException {
         calculationsInOneThread();
-        calculationsInTwoThreads();
+        calculationsInMultipleThreads(2);
     }
 
     public static void calculationsInOneThread() {
-        for (int i = 0; i < SIZE; i++) {
-            numbers[i] = 1;
-        }
+        initNumbers();
         long startTime = System.currentTimeMillis();
         for (int i = 0; i < SIZE; i++) {
             numbers[i] = getProceedNumber(i);
@@ -22,36 +19,40 @@ public class ThreadApp {
         System.out.println("calculationsInOneThread: " + (endTime - startTime));
     }
 
+    private static void initNumbers() {
+        for (int i = 0; i < SIZE; i++) {
+            numbers[i] = 1;
+        }
+    }
+
     private static float getProceedNumber(int i) {
         return (float) (numbers[i] * Math.sin(0.2f + i / 5) * Math.cos(0.2f + i / 5) *
                 Math.cos(0.4f + i / 2));
     }
 
-    public static void calculationsInTwoThreads() throws InterruptedException {
-        for (int i = 0; i < SIZE; i++) {
-            numbers[i] = 1;
-        }
+    public static void calculationsInMultipleThreads(int countThreads) throws InterruptedException {
+        initNumbers();
+        int countNumbersInOnePart = SIZE / countThreads;
         long startTime = System.currentTimeMillis();
 
-        Thread firstThread = new Thread(() -> {
-            for (int i = 0; i < HALF_OF_SIZE; i++) {
-                numbers[i] = getProceedNumber(i);
+        for (int threadIndex = 0; threadIndex < countThreads; threadIndex++) {
+            int startIndex = threadIndex * (countNumbersInOnePart - 1);
+            int endIndex = threadIndex * countNumbersInOnePart;
+            if (threadIndex == countThreads - 1) {
+                endIndex = SIZE;
             }
-        });
-
-        Thread secondThread = new Thread(() -> {
-            for (int i = HALF_OF_SIZE; i < SIZE; i++) {
-                numbers[i] = getProceedNumber(i);
-            }
-        });
-
-        firstThread.start();
-        secondThread.start();
-        firstThread.join();
-        secondThread.join();
+            int finalEndIndex = endIndex;
+            Thread thread = new Thread(() -> {
+                for (int i = startIndex; i < finalEndIndex; i++) {
+                    numbers[i] = getProceedNumber(i);
+                }
+            });
+            thread.start();
+            thread.join();
+        }
 
         long endTime = System.currentTimeMillis();
-        System.out.println("calculationsInTwoThreads: " + (endTime - startTime));
+        System.out.println("calculationsInMultipleThreads[" + countThreads + "]: " + (endTime - startTime));
     }
 
 }
