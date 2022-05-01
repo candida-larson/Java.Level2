@@ -1,10 +1,9 @@
 package com.geek.java.lesson6;
 
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.IOException;
+import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.nio.charset.StandardCharsets;
 import java.util.Scanner;
 
 public class Server {
@@ -59,6 +58,7 @@ public class Server {
                     }
                 } catch (IOException e) {
                     System.err.println("Error showClientMessage");
+                    System.exit(0);
                     break;
                 }
             }

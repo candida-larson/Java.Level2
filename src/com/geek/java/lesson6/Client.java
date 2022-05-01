@@ -39,6 +39,7 @@ public class Client {
                     }
                 } catch (IOException e) {
                     System.err.println("Error showServerMessages");
+                    System.exit(0);
                     break;
                 }
             }
@@ -52,11 +53,11 @@ public class Client {
         while (true) {
             try {
                 String message = scanner.nextLine();
+                dataOutputStream.writeUTF(message);
                 if (message.startsWith("/end")) {
                     System.out.println("End.");
                     break;
                 }
-                dataOutputStream.writeUTF(message);
             } catch (IOException e) {
                 System.out.println("Error from readMessagesFromConsole");
             }
