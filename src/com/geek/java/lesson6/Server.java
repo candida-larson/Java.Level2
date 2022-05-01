@@ -54,6 +54,7 @@ public class Server {
                     System.out.println("> Client: " + message);
                     if (message.startsWith("/end")) {
                         System.out.println("End by client.");
+                        System.exit(0);
                         break;
                     }
                 } catch (IOException e) {
