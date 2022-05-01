@@ -11,12 +11,9 @@ public class Client {
     private static final int PORT = 5664;
     private static DataOutputStream dataOutputStream;
     private static DataInputStream dataInputStream;
-    private static Thread showServerMessagesThread;
-    private static Scanner scanner;
 
     public static void main(String[] args) {
-        try {
-            Socket socket = new Socket(HOST, PORT);
+        try (Socket socket = new Socket(HOST, PORT)) {
             dataOutputStream = new DataOutputStream(socket.getOutputStream());
             dataInputStream = new DataInputStream(socket.getInputStream());
             System.out.println("Client connected to the server");
@@ -28,7 +25,7 @@ public class Client {
     }
 
     private static void showServerMessages() {
-        showServerMessagesThread = new Thread(() -> {
+        Thread showServerMessagesThread = new Thread(() -> {
             while (true) {
                 try {
                     String message = dataInputStream.readUTF();
@@ -50,7 +47,7 @@ public class Client {
     }
 
     private static void readMessagesFromConsole() {
-        scanner = new Scanner(System.in);
+        Scanner scanner = new Scanner(System.in);
         while (true) {
             try {
                 String message = scanner.nextLine();
