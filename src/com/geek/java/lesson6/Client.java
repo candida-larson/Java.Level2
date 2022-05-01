@@ -1,30 +1,65 @@
 package com.geek.java.lesson6;
 
+import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
 import java.util.Scanner;
 
 public class Client {
+    private static final String HOST = "localhost";
+    private static final int PORT = 5664;
+    private static DataOutputStream dataOutputStream;
+    private static DataInputStream dataInputStream;
+    private static Thread showServerMessagesThread;
+    private static Scanner scanner;
+
     public static void main(String[] args) {
         try {
-            Socket socket = new Socket("localhost", 5664);
-            DataOutputStream dataOutputStream = new DataOutputStream(socket.getOutputStream());
+            Socket socket = new Socket(HOST, PORT);
+            dataOutputStream = new DataOutputStream(socket.getOutputStream());
+            dataInputStream = new DataInputStream(socket.getInputStream());
             System.out.println("Client connected to the server");
+            showServerMessages();
+            readMessagesFromConsole();
+        } catch (IOException e) {
+            System.err.println("Client can not connect to the server");
+        }
+    }
 
-            Scanner scanner = new Scanner(System.in);
-
+    private static void showServerMessages() {
+        showServerMessagesThread = new Thread(() -> {
             while (true) {
-                String message = scanner.next();
-                dataOutputStream.writeUTF(message);
-
-                if (message.startsWith("/end")) {
+                try {
+                    String message = dataInputStream.readUTF();
+                    System.out.println("> Server: " + message);
+                    if (message.startsWith("/end")) {
+                        System.out.println("End by server.");
+                        break;
+                    }
+                } catch (IOException e) {
+                    System.err.println("Error showServerMessages");
                     break;
                 }
             }
+        });
+        showServerMessagesThread.setDaemon(true);
+        showServerMessagesThread.start();
+    }
 
-        } catch (IOException e) {
-            System.err.println("Client can not connect to the server");
+    private static void readMessagesFromConsole() {
+        scanner = new Scanner(System.in);
+        while (true) {
+            try {
+                String message = scanner.nextLine();
+                if (message.startsWith("/end")) {
+                    System.out.println("End.");
+                    break;
+                }
+                dataOutputStream.writeUTF(message);
+            } catch (IOException e) {
+                System.out.println("Error from readMessagesFromConsole");
+            }
         }
     }
 }

@@ -8,12 +8,15 @@ import java.net.Socket;
 import java.util.Scanner;
 
 public class Server {
+    private static final int PORT = 5664;
     private static Socket socket;
     private static DataInputStream dataInputStream;
     private static DataOutputStream dataOutputStream;
+    private static Thread showClientMessagesThread;
+    private static Scanner messageScanner;
 
     public static void main(String[] args) {
-        try (ServerSocket serverSocket = new ServerSocket(5664)) {
+        try (ServerSocket serverSocket = new ServerSocket(PORT)) {
             System.out.println("Start accept client connection");
             socket = serverSocket.accept();
             dataInputStream = new DataInputStream(socket.getInputStream());
@@ -28,12 +31,13 @@ public class Server {
     }
 
     private static void readMessagesFromConsole() {
-        Scanner scanner = new Scanner(System.in);
+        messageScanner = new Scanner(System.in);
         while (true) {
             try {
-                String message = scanner.next();
+                String message = messageScanner.nextLine();
                 dataOutputStream.writeUTF(message);
                 if (message.startsWith("/end")) {
+                    System.out.println("End.");
                     break;
                 }
             } catch (IOException e) {
@@ -44,12 +48,13 @@ public class Server {
     }
 
     private static void showClientMessages() {
-        Thread thread = new Thread(() -> {
+        showClientMessagesThread = new Thread(() -> {
             while (true) {
                 try {
                     String message = dataInputStream.readUTF();
-                    System.out.println("> From client: " + message);
+                    System.out.println("> Client: " + message);
                     if (message.startsWith("/end")) {
+                        System.out.println("End by client.");
                         break;
                     }
                 } catch (IOException e) {
@@ -58,7 +63,7 @@ public class Server {
                 }
             }
         });
-        thread.setDaemon(true);
-        thread.start();
+        showClientMessagesThread.setDaemon(true);
+        showClientMessagesThread.start();
     }
 }
