@@ -12,7 +12,7 @@ public class Dialogs {
 
         private final String message;
 
-        AuthError(String message) {k
+        AuthError(String message) {
             this.message = message;
         }
 
