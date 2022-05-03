@@ -23,9 +23,9 @@ public class BaseAuthService implements AuthService {
     }
 
     @Override
-    public String getNickByLoginPass(String login, String pass) {
+    public String getLoginByLoginPass(String login, String pass) {
         for (Client client : entries) {
-            if (client.getLogin().equals(login) && client.getPassword().equals(pass)) return client.getFullname();
+            if (client.getLogin().equals(login) && client.getPassword().equals(pass)) return client.getLogin();
         }
         return null;
     }

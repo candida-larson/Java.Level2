@@ -51,7 +51,7 @@ public class ClientChatApplication extends Application {
 
     private void loadUserList(FXMLLoader fxmlLoader) {
         ClientChatController clientChatController = fxmlLoader.getController();
-        clientChatController.userList.getItems().addAll("Pavel", "Mihael");
+        clientChatController.userList.getItems().addAll("login1", "login2", "login3");
     }
 
     public void switchToMainChatWindow(String userName) {

@@ -16,9 +16,9 @@ public class Client {
         return fullname;
     }
 
-    public Client(String login, String password, String nick) {
+    public Client(String login, String password, String fullname) {
         this.login = login;
         this.password = password;
-        this.fullname = nick;
+        this.fullname = fullname;
     }
 }

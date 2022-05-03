@@ -1,6 +1,7 @@
 package com.gb.clientchat.clientchat;
 
 import com.gb.clientchat.clientchat.dialogs.Dialogs;
+import com.gb.clientchat.clientchat.model.Network;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.TextField;

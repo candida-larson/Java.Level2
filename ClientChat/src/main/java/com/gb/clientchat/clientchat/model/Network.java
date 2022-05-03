@@ -1,5 +1,7 @@
-package com.gb.clientchat.clientchat;
+package com.gb.clientchat.clientchat.model;
 
+import com.gb.clientchat.clientchat.ClientChatApplication;
+import com.gb.clientchat.clientchat.ClientChatController;
 import com.gb.clientchat.clientchat.dialogs.Dialogs;
 import javafx.application.Platform;
 
@@ -48,28 +50,32 @@ public class Network {
             while (true) {
                 try {
                     String message = dataInputStream.readUTF();
+                    System.out.println(">> MESSAGE FROM NETWORK:: " + message);
+
                     if (message.startsWith("/authok")) {
                         String username = message.split(" ")[1];
                         System.out.println("Success auth: " + username);
                         Platform.runLater(() -> {
                             ClientChatApplication.getInstance().switchToMainChatWindow(username);
                         });
-                    } else {
+                    } else if (message.startsWith("/autherror")) {
                         Platform.runLater(() -> {
                             Dialogs.AuthError.INVALID_CREDENTIALS.show();
                         });
+                    } else if (message.startsWith("/mfrom")) {
+                        ClientChatApplication.getInstance().getChatController().processMessageFromOtherClient(message);
                     }
                 } catch (IOException e) {
                     System.err.println("Error read message from server");
                     break;
                 }
-
             }
         });
         readMessagesThread.start();
     }
 
     public void sendMessage(String message) throws IOException {
+        System.out.println(">> SEND MESSAGE: " + message);
         dataOutputStream.writeUTF(message);
     }
 

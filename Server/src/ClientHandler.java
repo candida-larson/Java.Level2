@@ -8,10 +8,10 @@ public class ClientHandler {
     private Socket socket;
     private DataInputStream dataInputStream;
     private DataOutputStream dataOutputStream;
-    private String name;
+    private String authenticatedLogin;
 
-    public String getName() {
-        return name;
+    public String getAuthenticatedLogin() {
+        return authenticatedLogin;
     }
 
     public ClientHandler(ChatServer chatServer, Socket socket) {
@@ -20,7 +20,7 @@ public class ClientHandler {
             this.socket = socket;
             this.dataInputStream = new DataInputStream(socket.getInputStream());
             this.dataOutputStream = new DataOutputStream(socket.getOutputStream());
-            this.name = "";
+            this.authenticatedLogin = "";
             new Thread(() -> {
                 try {
                     authentication();
@@ -38,22 +38,22 @@ public class ClientHandler {
 
     public void authentication() throws IOException {
         while (true) {
-            String str = dataInputStream.readUTF();
-            if (str.startsWith("/auth")) {
-                String[] parts = str.split("\\s");
-                String nick = chatServer.getAuthService().getNickByLoginPass(parts[1], parts[2]);
-                if (nick != null) {
-                    if (!chatServer.isNickBusy(nick)) {
-                        sendMessage("/authok " + nick);
-                        name = nick;
-                        chatServer.broadcastMsg(name + " зашел в чат");
+            String message = dataInputStream.readUTF();
+            if (message.startsWith("/auth")) {
+                String[] parts = message.split("\\s");
+                String login = chatServer.getAuthService().getLoginByLoginPass(parts[1], parts[2]);
+                if (login != null) {
+                    if (!chatServer.isNickBusy(login)) {
+                        sendMessage("/authok " + login);
+                        authenticatedLogin = login;
+                        chatServer.broadcastMessage("/login " + authenticatedLogin + " зашел в чат");
                         chatServer.subscribe(this);
                         return;
                     } else {
-                        sendMessage("Учетная запись уже используется");
+                        sendMessage("/authbusy " + parts[1]);
                     }
                 } else {
-                    sendMessage("Неверные логин/пароль");
+                    sendMessage("/autherror " + parts[1]);
                 }
             }
         }
@@ -61,12 +61,17 @@ public class ClientHandler {
 
     public void readMessages() throws IOException {
         while (true) {
-            String strFromClient = dataInputStream.readUTF();
-            System.out.println("от " + name + ": " + strFromClient);
-            if (strFromClient.equals("/end")) {
-                return;
+            String message = dataInputStream.readUTF();
+            if (message.startsWith("/w")){
+                String[] parts = message.split(" ", 3);
+                chatServer.sendMessageByLogin(parts[1], String.format("/mfrom %s %s", getAuthenticatedLogin(), parts[2]));
             }
-            chatServer.broadcastMsg(name + ": " + strFromClient);
+
+//            System.out.println("от " + authenticatedLogin + ": " + strFromClient);
+//            if (strFromClient.equals("/end")) {
+//                return;
+//            }
+//            chatServer.broadcastMessage(authenticatedLogin + ": " + strFromClient);
         }
     }
 
@@ -80,7 +85,7 @@ public class ClientHandler {
 
     public void closeConnection() {
         chatServer.unsubscribe(this);
-        chatServer.broadcastMsg(name + " вышел из чата");
+        chatServer.broadcastMessage(authenticatedLogin + " вышел из чата");
         try {
             dataInputStream.close();
         } catch (IOException e) {

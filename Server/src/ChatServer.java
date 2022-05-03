@@ -35,16 +35,25 @@ public class ChatServer {
 
     public synchronized boolean isNickBusy(String nick) {
         for (ClientHandler clientHandler : clients) {
-            if (clientHandler.getName().equals(nick)) {
+            if (clientHandler.getAuthenticatedLogin().equals(nick)) {
                 return true;
             }
         }
         return false;
     }
 
-    public synchronized void broadcastMsg(String msg) {
+    public synchronized void broadcastMessage(String message) {
         for (ClientHandler clientHandler : clients) {
-            clientHandler.sendMessage(msg);
+            clientHandler.sendMessage(message);
+        }
+    }
+
+    public synchronized void sendMessageByLogin(String login, String message) {
+        for (ClientHandler clientHandler : clients) {
+            if (clientHandler.getAuthenticatedLogin().equals(login)) {
+                clientHandler.sendMessage(message);
+                break;
+            }
         }
     }
 
