@@ -4,13 +4,13 @@ import java.io.Serializable;
 
 public class AuthOkCommandData implements Serializable {
 
-    private final String userName;
+    private final String login;
 
-    public AuthOkCommandData(String userName) {
-        this.userName = userName;
+    public AuthOkCommandData(String login) {
+        this.login = login;
     }
 
-    public String getUserName() {
-        return userName;
+    public String getLogin() {
+        return login;
     }
 }

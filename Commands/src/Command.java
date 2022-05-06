@@ -22,6 +22,13 @@ public class Command implements Serializable {
         return command;
     }
 
+    public static Command authErrorCommand(String message) {
+        Command command = new Command();
+        command.data = new AuthErrorCommandData(message);
+        command.type = CommandType.AUTH_ERROR;
+        return command;
+    }
+
     public static Command errorCommand(String errorMessage) {
         Command command = new Command();
         command.type = CommandType.ERROR;

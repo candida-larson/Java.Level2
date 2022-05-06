@@ -44,14 +44,14 @@ public class ChatServer {
 
     public synchronized void broadcastMessage(String message) {
         for (ClientHandler clientHandler : clients) {
-            clientHandler.sendMessage(message);
+            clientHandler.sendCommand(Command.publicMessageCommand(message));
         }
     }
 
     public synchronized void sendMessageByLogin(String login, String message) {
         for (ClientHandler clientHandler : clients) {
             if (clientHandler.getAuthenticatedLogin().equals(login)) {
-                clientHandler.sendMessage(message);
+                clientHandler.sendCommand(Command.clientMessageCommand(login, message));
                 break;
             }
         }
