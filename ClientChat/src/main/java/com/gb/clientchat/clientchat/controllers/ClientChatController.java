@@ -1,6 +1,11 @@
 package com.gb.clientchat.clientchat.controllers;
 
+import com.gb.clientchat.clientchat.dialogs.Dialogs;
 import com.gb.clientchat.clientchat.model.Network;
+import com.gb.clientchat.clientchat.model.ReadMessageListener;
+import com.gb.clientchat.co.Command;
+import com.gb.clientchat.co.CommandType;
+import com.gb.clientchat.co.commands.ClientMessageCommandData;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
@@ -25,16 +30,20 @@ public class ClientChatController {
 
     public void sendMessage(ActionEvent actionEvent) {
         if (!messageTextArea.getText().isEmpty()) {
-            String recipient = "NONE";
+            String recipient = null;
             if (!userList.getSelectionModel().isEmpty()) {
                 recipient = userList.getSelectionModel().getSelectedItem().toString();
             }
             appendMessageToChat("", messageTextArea.getText());
 
             try {
-                Network.getInstance().sendMessage(String.format("/w %s %s", recipient, messageTextArea.getText()));
+                if (recipient != null) {
+                    Network.getInstance().sendPrivateMessage(recipient, messageTextArea.getText());
+                } else {
+                    Network.getInstance().sendPublicMessage(messagesListTextArea.getText());
+                }
             } catch (IOException e) {
-                System.err.println("Cannot send message from textarea");
+                Dialogs.NetworkError.SEND_MESSAGE.show();
             }
 
             messageTextArea.clear();
@@ -51,9 +60,17 @@ public class ClientChatController {
         messagesListTextArea.appendText("-".repeat(42) + System.lineSeparator());
     }
 
-    public void processMessageFromOtherClient(String message) {
-        String[] parts = message.split(" ", 3);
-        appendMessageToChat(parts[1], parts[2]);
+    public void initMessageHandler() {
+        Network.getInstance().addReadMessageListener(command -> {
+
+            if (command.getType() == CommandType.CLIENT_MESSAGE) {
+                ClientMessageCommandData data = (ClientMessageCommandData) command.getData();
+                appendMessageToChat(data.getSender(), data.getMessage());
+            } else if (command.getType() == CommandType.UPDATE_USERS_LIST) {
+                System.out.println("Update users list");
+            }
+
+        });
     }
 
 }

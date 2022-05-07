@@ -52,6 +52,13 @@ public class Command implements Serializable {
         return command;
     }
 
+    public static Command privateMessageCommand(String receiver, String message) {
+        Command command = new Command();
+        command.type = CommandType.PRIVATE_MESSAGE;
+        command.data = new PrivateMessageCommandData(receiver, message);
+        return command;
+    }
+
     public static Command updateUserListCommand(List<String> users) {
         Command command = new Command();
         command.type = CommandType.UPDATE_USERS_LIST;

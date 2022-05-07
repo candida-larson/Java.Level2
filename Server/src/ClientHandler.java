@@ -1,6 +1,7 @@
 import com.gb.clientchat.co.Command;
 import com.gb.clientchat.co.CommandType;
 import com.gb.clientchat.co.commands.AuthCommandData;
+import com.gb.clientchat.co.commands.ClientMessageCommandData;
 import com.gb.clientchat.co.commands.PrivateMessageCommandData;
 import com.gb.clientchat.co.commands.PublicMessageCommandData;
 
@@ -55,7 +56,7 @@ public class ClientHandler {
                 if (login == null) {
                     sendCommand(Command.authErrorCommand("Invalid credentials"));
                 } else {
-                    if (chatServer.isNickBusy(login)) {
+                    if (!chatServer.isNickBusy(login)) {
                         sendCommand(Command.authOkCommand(login));
                         authenticatedLogin = login;
                         chatServer.subscribe(this);
@@ -65,24 +66,6 @@ public class ClientHandler {
                     }
                 }
             }
-
-//            if (message.startsWith("/auth")) {
-//                String[] parts = message.split("\\s");
-//                String login = chatServer.getAuthService().getLoginByLoginPass(parts[1], parts[2]);
-//                if (login != null) {
-//                    if (!chatServer.isNickBusy(login)) {
-//                        sendMessage("/authok " + login);
-//                        authenticatedLogin = login;
-//                        chatServer.broadcastMessage("/login " + authenticatedLogin + " зашел в чат");
-//                        chatServer.subscribe(this);
-//                        return;
-//                    } else {
-//                        sendMessage("/authbusy " + parts[1]);
-//                    }
-//                } else {
-//                    sendMessage("/autherror " + parts[1]);
-//                }
-//            }
         }
     }
 
@@ -96,22 +79,21 @@ public class ClientHandler {
     }
 
     public void readMessages() throws IOException, ClassNotFoundException {
-//        while (true) {
-//            String message = objectInputStream.readUTF();
-//            if (message.startsWith("/w")) {
-//                String[] parts = message.split(" ", 3);
-//                chatServer.sendMessageByLogin(parts[1], String.format("/mfrom %s %s", getAuthenticatedLogin(), parts[2]));
-//            }
-//        }
-
+        System.out.println("Start read messages");
         while (true) {
-            Command command = (Command) objectInputStream.readObject();
+            Command command = readCommand();
+            if (command == null) {
+                return;
+            }
+
+            System.out.println("Received message on server: " + command.getType());
+
             if (command.getType() == CommandType.PRIVATE_MESSAGE) {
                 PrivateMessageCommandData data = (PrivateMessageCommandData) command.getData();
-                chatServer.sendMessageByLogin(data.getReceiver(), data.getMessage());
+                chatServer.sendMessageByLogin(data.getReceiver(), data.getMessage(), getAuthenticatedLogin());
             } else if (command.getType() == CommandType.PUBLIC_MESSAGE) {
                 PublicMessageCommandData data = (PublicMessageCommandData) command.getData();
-                chatServer.broadcastMessage(data.getMessage());
+                chatServer.broadcastMessage(this, data.getMessage());
             }
         }
     }

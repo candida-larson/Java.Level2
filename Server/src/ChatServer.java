@@ -44,16 +44,18 @@ public class ChatServer {
         return false;
     }
 
-    public synchronized void broadcastMessage(String message) {
+    public synchronized void broadcastMessage(ClientHandler sender, String message) {
         for (ClientHandler clientHandler : clients) {
-            clientHandler.sendCommand(Command.publicMessageCommand(message));
+            if (clientHandler != sender) {
+                clientHandler.sendCommand(Command.clientMessageCommand(sender.getAuthenticatedLogin(), message));
+            }
         }
     }
 
-    public synchronized void sendMessageByLogin(String login, String message) {
+    public synchronized void sendMessageByLogin(String login, String message, String sender) {
         for (ClientHandler clientHandler : clients) {
             if (clientHandler.getAuthenticatedLogin().equals(login)) {
-                clientHandler.sendCommand(Command.clientMessageCommand(login, message));
+                clientHandler.sendCommand(Command.clientMessageCommand(sender, message));
                 break;
             }
         }

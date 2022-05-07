@@ -7,6 +7,8 @@ import javafx.application.Platform;
 
 import java.io.*;
 import java.net.Socket;
+import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 public class Network {
     private static Network INSTANCE;
@@ -17,6 +19,8 @@ public class Network {
     private ObjectInputStream objectInputStream;
     private ObjectOutputStream objectOutputStream;
     private Thread readMessagesThread;
+
+    private List<ReadMessageListener> listeners = new CopyOnWriteArrayList<>();
 
     private Network() {
 
@@ -32,8 +36,8 @@ public class Network {
     public boolean connect() {
         try {
             socket = new Socket(HOSTNAME, PORT);
-            objectInputStream = new ObjectInputStream(socket.getInputStream());
             objectOutputStream = new ObjectOutputStream(socket.getOutputStream());
+            objectInputStream = new ObjectInputStream(socket.getInputStream());
             readMessages();
             connected = true;
             return true;
@@ -47,28 +51,46 @@ public class Network {
         readMessagesThread = new Thread(() -> {
             while (true) {
                 try {
-                    String message = objectInputStream.readUTF();
-                    System.out.println(">> MESSAGE FROM NETWORK:: " + message);
-
-                    if (message.startsWith("/authok")) {
-                        String username = message.split(" ")[1];
-                        System.out.println("Success auth: " + username);
-                        Platform.runLater(() -> {
-                            ClientChatApplication.getInstance().switchToMainChatWindow(username);
-                        });
-                    } else if (message.startsWith("/autherror")) {
-                        Platform.runLater(() -> {
-                            Dialogs.AuthError.INVALID_CREDENTIALS.show();
-                        });
-                    } else if (message.startsWith("/mfrom")) {
-                        ClientChatApplication.getInstance().getChatController().processMessageFromOtherClient(message);
+                    Command command = (Command) objectInputStream.readObject();
+                    if (command == null) {
+                        continue;
                     }
-                } catch (IOException e) {
-                    System.err.println("Error read message from server");
-                    break;
+
+                    for (ReadMessageListener listener : listeners) {
+                        listener.processReceivedCommand(command);
+                    }
+
+                } catch (IOException | ClassNotFoundException e) {
+                    System.err.println("Server can not read message");
                 }
             }
+
+//            while (true) {
+//                try {
+//                    String message = objectInputStream.readUTF();
+//                    System.out.println(">> MESSAGE FROM NETWORK:: " + message);
+//
+//                    if (message.startsWith("/authok")) {
+//                        String username = message.split(" ")[1];
+//                        System.out.println("Success auth: " + username);
+//                        Platform.runLater(() -> {
+//                            ClientChatApplication.getInstance().switchToMainChatWindow(username);
+//                        });
+//                    } else if (message.startsWith("/autherror")) {
+//                        Platform.runLater(() -> {
+//                            Dialogs.AuthError.INVALID_CREDENTIALS.show();
+//                        });
+//                    } else if (message.startsWith("/mfrom")) {
+//                        ClientChatApplication.getInstance().getChatController().processMessageFromOtherClient(message);
+//                    }
+//                } catch (IOException e) {
+//                    System.err.println("Error read message from server");
+//                    break;
+//                }
+//            }
+
         });
+        readMessagesThread.setDaemon(true);
         readMessagesThread.start();
     }
 
@@ -77,4 +99,33 @@ public class Network {
         objectOutputStream.writeUTF(message);
     }
 
+    public void sendPrivateMessage(String receiver, String message) throws IOException {
+        System.out.println(">> sendPrivateMessage");
+        sendCommand(Command.privateMessageCommand(receiver, message));
+    }
+
+    public void sendCommand(Command command) throws IOException {
+        objectOutputStream.writeObject(command);
+    }
+
+    private Command readCommand() throws IOException, ClassNotFoundException {
+        return (Command) objectInputStream.readObject();
+    }
+
+    public ReadMessageListener addReadMessageListener(ReadMessageListener readMessageListener) {
+        listeners.add(readMessageListener);
+        return readMessageListener;
+    }
+
+    public void removeReadMessageListener(ReadMessageListener readMessageListener) {
+        listeners.remove(readMessageListener);
+    }
+
+    public void sendAuthMessage(String login, String password) throws IOException {
+        sendCommand(Command.authCommand(login, password));
+    }
+
+    public void sendPublicMessage(String text) throws IOException {
+        sendCommand(Command.publicMessageCommand(text));
+    }
 }

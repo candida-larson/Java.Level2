@@ -35,8 +35,11 @@ public class ClientChatApplication extends Application {
         stage.show();
 
         loadUserList(fxmlLoader);
-
         initAuthDialog();
+
+        getChatController().initMessageHandler();
+        getAuthController().initMessageHandler();
+
     }
 
     private void initAuthDialog() throws IOException {
