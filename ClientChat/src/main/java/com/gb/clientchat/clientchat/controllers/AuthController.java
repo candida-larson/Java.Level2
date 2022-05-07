@@ -3,8 +3,6 @@ package com.gb.clientchat.clientchat.controllers;
 import com.gb.clientchat.clientchat.ClientChatApplication;
 import com.gb.clientchat.clientchat.dialogs.Dialogs;
 import com.gb.clientchat.clientchat.model.Network;
-import com.gb.clientchat.clientchat.model.ReadMessageListener;
-import com.gb.clientchat.co.Command;
 import com.gb.clientchat.co.CommandType;
 import com.gb.clientchat.co.commands.AuthOkCommandData;
 import com.gb.clientchat.co.commands.ErrorCommandData;

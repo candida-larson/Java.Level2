@@ -1,9 +1,6 @@
 package com.gb.clientchat.clientchat.model;
 
-import com.gb.clientchat.clientchat.ClientChatApplication;
-import com.gb.clientchat.clientchat.dialogs.Dialogs;
 import com.gb.clientchat.co.Command;
-import javafx.application.Platform;
 
 import java.io.*;
 import java.net.Socket;
@@ -51,7 +48,11 @@ public class Network {
         readMessagesThread = new Thread(() -> {
             while (true) {
                 try {
-                    Command command = (Command) objectInputStream.readObject();
+                    if (Thread.currentThread().isInterrupted()) {
+                        return;
+                    }
+
+                    Command command = readCommand();
                     if (command == null) {
                         continue;
                     }
@@ -62,41 +63,13 @@ public class Network {
 
                 } catch (IOException | ClassNotFoundException e) {
                     System.err.println("Server can not read message");
+                    close();
+                    return;
                 }
             }
-
-//            while (true) {
-//                try {
-//                    String message = objectInputStream.readUTF();
-//                    System.out.println(">> MESSAGE FROM NETWORK:: " + message);
-//
-//                    if (message.startsWith("/authok")) {
-//                        String username = message.split(" ")[1];
-//                        System.out.println("Success auth: " + username);
-//                        Platform.runLater(() -> {
-//                            ClientChatApplication.getInstance().switchToMainChatWindow(username);
-//                        });
-//                    } else if (message.startsWith("/autherror")) {
-//                        Platform.runLater(() -> {
-//                            Dialogs.AuthError.INVALID_CREDENTIALS.show();
-//                        });
-//                    } else if (message.startsWith("/mfrom")) {
-//                        ClientChatApplication.getInstance().getChatController().processMessageFromOtherClient(message);
-//                    }
-//                } catch (IOException e) {
-//                    System.err.println("Error read message from server");
-//                    break;
-//                }
-//            }
-
         });
         readMessagesThread.setDaemon(true);
         readMessagesThread.start();
-    }
-
-    public void sendMessage(String message) throws IOException {
-        System.out.println(">> SEND MESSAGE: " + message);
-        objectOutputStream.writeUTF(message);
     }
 
     public void sendPrivateMessage(String receiver, String message) throws IOException {
@@ -128,4 +101,15 @@ public class Network {
     public void sendPublicMessage(String text) throws IOException {
         sendCommand(Command.publicMessageCommand(text));
     }
+
+    public void close() {
+        try {
+            socket.close();
+            connected = false;
+            readMessagesThread.interrupt();
+        } catch (IOException e) {
+            System.err.println("Close error");
+        }
+    }
+
 }

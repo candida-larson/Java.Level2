@@ -1,7 +1,6 @@
 import com.gb.clientchat.co.Command;
 import com.gb.clientchat.co.CommandType;
 import com.gb.clientchat.co.commands.AuthCommandData;
-import com.gb.clientchat.co.commands.ClientMessageCommandData;
 import com.gb.clientchat.co.commands.PrivateMessageCommandData;
 import com.gb.clientchat.co.commands.PublicMessageCommandData;
 
@@ -108,7 +107,6 @@ public class ClientHandler {
 
     public void closeConnection() {
         chatServer.unsubscribe(this);
-        // chatServer.broadcastMessage(authenticatedLogin + " вышел из чата");
         try {
             objectInputStream.close();
         } catch (IOException e) {
