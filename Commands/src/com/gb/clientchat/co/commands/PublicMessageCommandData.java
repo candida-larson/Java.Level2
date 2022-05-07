@@ -1,4 +1,4 @@
-package commands;
+package com.gb.clientchat.co.commands;
 
 import java.io.Serializable;
 

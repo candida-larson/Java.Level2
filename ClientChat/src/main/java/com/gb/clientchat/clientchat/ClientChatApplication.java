@@ -1,5 +1,7 @@
 package com.gb.clientchat.clientchat;
 
+import com.gb.clientchat.clientchat.controllers.AuthController;
+import com.gb.clientchat.clientchat.controllers.ClientChatController;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;

@@ -1,13 +1,11 @@
 package com.gb.clientchat.clientchat.model;
 
 import com.gb.clientchat.clientchat.ClientChatApplication;
-import com.gb.clientchat.clientchat.ClientChatController;
 import com.gb.clientchat.clientchat.dialogs.Dialogs;
+import com.gb.clientchat.co.Command;
 import javafx.application.Platform;
 
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.IOException;
+import java.io.*;
 import java.net.Socket;
 
 public class Network {
@@ -16,8 +14,8 @@ public class Network {
     private final int PORT = 8187;
     private Socket socket;
     private boolean connected = false;
-    private DataInputStream dataInputStream;
-    private DataOutputStream dataOutputStream;
+    private ObjectInputStream objectInputStream;
+    private ObjectOutputStream objectOutputStream;
     private Thread readMessagesThread;
 
     private Network() {
@@ -34,8 +32,8 @@ public class Network {
     public boolean connect() {
         try {
             socket = new Socket(HOSTNAME, PORT);
-            dataInputStream = new DataInputStream(socket.getInputStream());
-            dataOutputStream = new DataOutputStream(socket.getOutputStream());
+            objectInputStream = new ObjectInputStream(socket.getInputStream());
+            objectOutputStream = new ObjectOutputStream(socket.getOutputStream());
             readMessages();
             connected = true;
             return true;
@@ -49,7 +47,7 @@ public class Network {
         readMessagesThread = new Thread(() -> {
             while (true) {
                 try {
-                    String message = dataInputStream.readUTF();
+                    String message = objectInputStream.readUTF();
                     System.out.println(">> MESSAGE FROM NETWORK:: " + message);
 
                     if (message.startsWith("/authok")) {
@@ -76,7 +74,7 @@ public class Network {
 
     public void sendMessage(String message) throws IOException {
         System.out.println(">> SEND MESSAGE: " + message);
-        dataOutputStream.writeUTF(message);
+        objectOutputStream.writeUTF(message);
     }
 
 }

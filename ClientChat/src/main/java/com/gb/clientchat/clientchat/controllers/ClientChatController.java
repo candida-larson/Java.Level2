@@ -1,4 +1,4 @@
-package com.gb.clientchat.clientchat;
+package com.gb.clientchat.clientchat.controllers;
 
 import com.gb.clientchat.clientchat.model.Network;
 import javafx.event.ActionEvent;

@@ -1,3 +1,5 @@
+import com.gb.clientchat.co.Command;
+
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;

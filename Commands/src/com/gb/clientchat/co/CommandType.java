@@ -1,3 +1,5 @@
+package com.gb.clientchat.co;
+
 public enum CommandType {
     AUTH,
     PUBLIC_MESSAGE,

@@ -1,4 +1,6 @@
-import commands.*;
+package com.gb.clientchat.co;
+
+import com.gb.clientchat.co.commands.*;
 
 import java.io.Serializable;
 import java.util.List;

@@ -1,7 +1,8 @@
-import commands.AuthCommandData;
-import commands.AuthErrorCommandData;
-import commands.PrivateMessageCommandData;
-import commands.PublicMessageCommandData;
+import com.gb.clientchat.co.Command;
+import com.gb.clientchat.co.CommandType;
+import com.gb.clientchat.co.commands.AuthCommandData;
+import com.gb.clientchat.co.commands.PrivateMessageCommandData;
+import com.gb.clientchat.co.commands.PublicMessageCommandData;
 
 import java.io.*;
 import java.net.Socket;
