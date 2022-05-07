@@ -6,6 +6,9 @@ import com.gb.clientchat.clientchat.model.ReadMessageListener;
 import com.gb.clientchat.co.Command;
 import com.gb.clientchat.co.CommandType;
 import com.gb.clientchat.co.commands.ClientMessageCommandData;
+import com.gb.clientchat.co.commands.UpdateUserListCommandData;
+import javafx.application.Platform;
+import javafx.collections.FXCollections;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
@@ -62,15 +65,14 @@ public class ClientChatController {
 
     public void initMessageHandler() {
         Network.getInstance().addReadMessageListener(command -> {
-
             if (command.getType() == CommandType.CLIENT_MESSAGE) {
                 ClientMessageCommandData data = (ClientMessageCommandData) command.getData();
                 appendMessageToChat(data.getSender(), data.getMessage());
             } else if (command.getType() == CommandType.UPDATE_USERS_LIST) {
                 System.out.println("Update users list");
+                UpdateUserListCommandData data = (UpdateUserListCommandData) command.getData();
+                Platform.runLater(() -> userList.setItems(FXCollections.observableList(data.getUsers())));
             }
-
         });
     }
-
 }

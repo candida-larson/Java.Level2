@@ -74,9 +74,11 @@ public class ChatServer {
 
     public synchronized void unsubscribe(ClientHandler clientHandler) {
         clients.remove(clientHandler);
+        notifyUserListUpdated();
     }
 
     public synchronized void subscribe(ClientHandler clientHandler) {
         clients.add(clientHandler);
+        notifyUserListUpdated();
     }
 }
