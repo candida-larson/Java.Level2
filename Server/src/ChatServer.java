@@ -35,6 +35,17 @@ public class ChatServer {
         }
     }
 
+    public synchronized void notifyUserListUpdated() {
+        List<String> users = new ArrayList<>();
+        for (ClientHandler client : clients) {
+            users.add(client.getAuthenticatedLogin());
+        }
+
+        for (ClientHandler client : clients) {
+            client.sendCommand(Command.updateUserListCommand(users));
+        }
+    }
+
     public synchronized boolean isNickBusy(String nick) {
         for (ClientHandler clientHandler : clients) {
             if (clientHandler.getAuthenticatedLogin().equals(nick)) {

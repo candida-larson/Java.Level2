@@ -46,7 +46,8 @@ public class ClientHandler {
 
             if (command == null) {
                 System.err.println("authentication command is null");
-                continue;
+                closeConnection();
+                return;
             }
 
             if (command.getType() == CommandType.AUTH) {
@@ -82,6 +83,7 @@ public class ClientHandler {
         while (true) {
             Command command = readCommand();
             if (command == null) {
+                closeConnection();
                 return;
             }
 
