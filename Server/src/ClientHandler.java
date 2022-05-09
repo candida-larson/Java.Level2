@@ -1,14 +1,21 @@
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.IOException;
+import com.gb.clientchat.co.Command;
+import com.gb.clientchat.co.CommandType;
+import com.gb.clientchat.co.commands.AuthCommandData;
+import com.gb.clientchat.co.commands.PrivateMessageCommandData;
+import com.gb.clientchat.co.commands.PublicMessageCommandData;
+
+import java.io.*;
 import java.net.Socket;
+import java.util.Timer;
+import java.util.TimerTask;
 
 public class ClientHandler {
     private ChatServer chatServer;
     private Socket socket;
-    private DataInputStream dataInputStream;
-    private DataOutputStream dataOutputStream;
+    private ObjectInputStream objectInputStream;
+    private ObjectOutputStream objectOutputStream;
     private String authenticatedLogin;
+    private Timer timer;
 
     public String getAuthenticatedLogin() {
         return authenticatedLogin;
@@ -18,14 +25,15 @@ public class ClientHandler {
         try {
             this.chatServer = chatServer;
             this.socket = socket;
-            this.dataInputStream = new DataInputStream(socket.getInputStream());
-            this.dataOutputStream = new DataOutputStream(socket.getOutputStream());
+            this.objectInputStream = new ObjectInputStream(socket.getInputStream());
+            this.objectOutputStream = new ObjectOutputStream(socket.getOutputStream());
             this.authenticatedLogin = "";
             new Thread(() -> {
                 try {
+                    closeConnectionAfterTime();
                     authentication();
                     readMessages();
-                } catch (IOException e) {
+                } catch (IOException | ClassNotFoundException e) {
                     e.printStackTrace();
                 } finally {
                     closeConnection();
@@ -36,63 +44,96 @@ public class ClientHandler {
         }
     }
 
-    public void authentication() throws IOException {
+    private void closeConnectionAfterTime() {
+        timer = new Timer();
+        timer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                System.out.println("RUN closeConnectionAfterTime");
+                if (getAuthenticatedLogin().isEmpty()) {
+                    closeConnection();
+                }
+                timer.cancel();
+            }
+        }, 1000 * 120);
+    }
+
+    public void authentication() throws IOException, ClassNotFoundException {
         while (true) {
-            String message = dataInputStream.readUTF();
-            if (message.startsWith("/auth")) {
-                String[] parts = message.split("\\s");
-                String login = chatServer.getAuthService().getLoginByLoginPass(parts[1], parts[2]);
-                if (login != null) {
+            Command command = readCommand();
+
+            if (command == null) {
+                System.err.println("authentication command is null");
+                closeConnection();
+                return;
+            }
+
+            if (command.getType() == CommandType.AUTH) {
+                AuthCommandData authCommandData = (AuthCommandData) command.getData();
+                String login = chatServer.getAuthService().getLoginByLoginPass(authCommandData.getLogin(), authCommandData.getPassword());
+                if (login == null) {
+                    sendCommand(Command.authErrorCommand("Invalid credentials"));
+                } else {
                     if (!chatServer.isNickBusy(login)) {
-                        sendMessage("/authok " + login);
+                        sendCommand(Command.authOkCommand(login));
                         authenticatedLogin = login;
-                        chatServer.broadcastMessage("/login " + authenticatedLogin + " зашел в чат");
                         chatServer.subscribe(this);
                         return;
                     } else {
-                        sendMessage("/authbusy " + parts[1]);
+                        sendCommand(Command.errorCommand("This client is already authorized"));
                     }
-                } else {
-                    sendMessage("/autherror " + parts[1]);
                 }
             }
         }
     }
 
-    public void readMessages() throws IOException {
+    private Command readCommand() {
+        try {
+            return (Command) objectInputStream.readObject();
+        } catch (IOException | ClassNotFoundException e) {
+            System.err.println("readCommand on server error");
+        }
+        return null;
+    }
+
+    public void readMessages() throws IOException, ClassNotFoundException {
+        System.out.println("Start read messages");
         while (true) {
-            String message = dataInputStream.readUTF();
-            if (message.startsWith("/w")){
-                String[] parts = message.split(" ", 3);
-                chatServer.sendMessageByLogin(parts[1], String.format("/mfrom %s %s", getAuthenticatedLogin(), parts[2]));
+            Command command = readCommand();
+            if (command == null) {
+                closeConnection();
+                return;
             }
 
-//            System.out.println("от " + authenticatedLogin + ": " + strFromClient);
-//            if (strFromClient.equals("/end")) {
-//                return;
-//            }
-//            chatServer.broadcastMessage(authenticatedLogin + ": " + strFromClient);
+            System.out.println("Received message on server: " + command.getType());
+
+            if (command.getType() == CommandType.PRIVATE_MESSAGE) {
+                PrivateMessageCommandData data = (PrivateMessageCommandData) command.getData();
+                chatServer.sendMessageByLogin(data.getReceiver(), data.getMessage(), getAuthenticatedLogin());
+            } else if (command.getType() == CommandType.PUBLIC_MESSAGE) {
+                PublicMessageCommandData data = (PublicMessageCommandData) command.getData();
+                chatServer.broadcastMessage(this, data.getMessage());
+            }
         }
     }
 
-    public void sendMessage(String message) {
+    public void sendCommand(Command command) {
         try {
-            dataOutputStream.writeUTF(message);
+            objectOutputStream.writeObject(command);
         } catch (IOException e) {
-            e.printStackTrace();
+            System.err.println("error send command");
         }
     }
 
     public void closeConnection() {
         chatServer.unsubscribe(this);
-        chatServer.broadcastMessage(authenticatedLogin + " вышел из чата");
         try {
-            dataInputStream.close();
+            objectInputStream.close();
         } catch (IOException e) {
             e.printStackTrace();
         }
         try {
-            dataOutputStream.close();
+            objectOutputStream.close();
         } catch (IOException e) {
             e.printStackTrace();
         }

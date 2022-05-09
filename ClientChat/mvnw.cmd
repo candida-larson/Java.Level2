@@ -25,7 +25,7 @@
 @REM
 @REM Optional ENV vars
 @REM M2_HOME - location of maven2's installed home dir
-@REM MAVEN_BATCH_ECHO - set to 'on' to enable the echoing of the batch commands
+@REM MAVEN_BATCH_ECHO - set to 'on' to enable the echoing of the batch com.gb.clientchat.co.commands
 @REM MAVEN_BATCH_PAUSE - set to 'on' to wait for a keystroke before ending
 @REM MAVEN_OPTS - parameters passed to the Java VM when running Maven
 @REM     e.g. to debug Maven itself, use
@@ -141,7 +141,7 @@ if exist %WRAPPER_JAR% (
         echo Downloading from: %DOWNLOAD_URL%
     )
 
-    powershell -Command "&{"^
+    powershell -com.gb.clientchat.co.Command "&{"^
 		"$webclient = new-object System.Net.WebClient;"^
 		"if (-not ([string]::IsNullOrEmpty('%MVNW_USERNAME%') -and [string]::IsNullOrEmpty('%MVNW_PASSWORD%'))) {"^
 		"$webclient.Credentials = new-object System.Net.NetworkCredential('%MVNW_USERNAME%', '%MVNW_PASSWORD%');"^

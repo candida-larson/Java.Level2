@@ -1,3 +1,5 @@
+import com.gb.clientchat.co.Command;
+
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -33,6 +35,17 @@ public class ChatServer {
         }
     }
 
+    public synchronized void notifyUserListUpdated() {
+        List<String> users = new ArrayList<>();
+        for (ClientHandler client : clients) {
+            users.add(client.getAuthenticatedLogin());
+        }
+
+        for (ClientHandler client : clients) {
+            client.sendCommand(Command.updateUserListCommand(users));
+        }
+    }
+
     public synchronized boolean isNickBusy(String nick) {
         for (ClientHandler clientHandler : clients) {
             if (clientHandler.getAuthenticatedLogin().equals(nick)) {
@@ -42,16 +55,18 @@ public class ChatServer {
         return false;
     }
 
-    public synchronized void broadcastMessage(String message) {
+    public synchronized void broadcastMessage(ClientHandler sender, String message) {
         for (ClientHandler clientHandler : clients) {
-            clientHandler.sendMessage(message);
+            if (clientHandler != sender) {
+                clientHandler.sendCommand(Command.clientMessageCommand(sender.getAuthenticatedLogin(), message));
+            }
         }
     }
 
-    public synchronized void sendMessageByLogin(String login, String message) {
+    public synchronized void sendMessageByLogin(String login, String message, String sender) {
         for (ClientHandler clientHandler : clients) {
             if (clientHandler.getAuthenticatedLogin().equals(login)) {
-                clientHandler.sendMessage(message);
+                clientHandler.sendCommand(Command.clientMessageCommand(sender, message));
                 break;
             }
         }
@@ -59,9 +74,11 @@ public class ChatServer {
 
     public synchronized void unsubscribe(ClientHandler clientHandler) {
         clients.remove(clientHandler);
+        notifyUserListUpdated();
     }
 
     public synchronized void subscribe(ClientHandler clientHandler) {
         clients.add(clientHandler);
+        notifyUserListUpdated();
     }
 }
