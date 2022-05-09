@@ -48,6 +48,7 @@ public class AuthController {
             if (command.getType() == CommandType.AUTH_OK) {
                 AuthOkCommandData data = (AuthOkCommandData) command.getData();
                 Platform.runLater(() -> {
+                    ClientChatApplication.getInstance().setAuthorizedLogin(data.getLogin());
                     ClientChatApplication.getInstance().switchToMainChatWindow(data.getLogin());
                 });
             } else if (command.getType() == CommandType.AUTH_ERROR) {

@@ -5,6 +5,8 @@ import com.gb.clientchat.co.Command;
 import java.io.*;
 import java.net.Socket;
 import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 public class Network {
@@ -104,6 +106,8 @@ public class Network {
 
     public void close() {
         try {
+            objectInputStream.close();
+            objectInputStream.close();
             socket.close();
             connected = false;
             readMessagesThread.interrupt();

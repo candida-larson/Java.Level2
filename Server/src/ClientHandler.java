@@ -53,6 +53,7 @@ public class ClientHandler {
                 if (getAuthenticatedLogin().isEmpty()) {
                     closeConnection();
                 }
+                timer.cancel();
             }
         }, 1000 * 120);
     }
