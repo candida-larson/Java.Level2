@@ -2,6 +2,7 @@ package com.gb.clientchat.clientchat;
 
 import com.gb.clientchat.clientchat.controllers.AuthController;
 import com.gb.clientchat.clientchat.controllers.ClientChatController;
+import com.gb.clientchat.clientchat.model.Network;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
@@ -40,6 +41,7 @@ public class ClientChatApplication extends Application {
         getChatController().initMessageHandler();
         getAuthController().initMessageHandler();
 
+        Network.getInstance().connect();
     }
 
     private void initAuthDialog() throws IOException {
