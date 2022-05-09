@@ -6,6 +6,8 @@ import com.gb.clientchat.co.commands.PublicMessageCommandData;
 
 import java.io.*;
 import java.net.Socket;
+import java.util.Timer;
+import java.util.TimerTask;
 
 public class ClientHandler {
     private ChatServer chatServer;
@@ -13,6 +15,7 @@ public class ClientHandler {
     private ObjectInputStream objectInputStream;
     private ObjectOutputStream objectOutputStream;
     private String authenticatedLogin;
+    private Timer timer;
 
     public String getAuthenticatedLogin() {
         return authenticatedLogin;
@@ -27,6 +30,7 @@ public class ClientHandler {
             this.authenticatedLogin = "";
             new Thread(() -> {
                 try {
+                    closeConnectionAfterTime();
                     authentication();
                     readMessages();
                 } catch (IOException | ClassNotFoundException e) {
@@ -38,6 +42,19 @@ public class ClientHandler {
         } catch (IOException e) {
             throw new RuntimeException("Проблемы при создании обработчика клиента");
         }
+    }
+
+    private void closeConnectionAfterTime() {
+        timer = new Timer();
+        timer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                System.out.println("RUN closeConnectionAfterTime");
+                if (getAuthenticatedLogin().isEmpty()) {
+                    closeConnection();
+                }
+            }
+        }, 1000 * 120);
     }
 
     public void authentication() throws IOException, ClassNotFoundException {
